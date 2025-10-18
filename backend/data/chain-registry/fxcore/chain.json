@@ -1,0 +1,188 @@
+{
+  "$schema": "../chain.schema.json",
+  "chain_name": "fxcore",
+  "chain_type": "cosmos",
+  "chain_id": "fxcore",
+  "website": "https://fx.pundi.ai",
+  "pretty_name": "Pundi AIFX",
+  "status": "live",
+  "network_type": "mainnet",
+  "bech32_prefix": "fx",
+  "daemon_name": "fxcored",
+  "node_home": "$HOME/.fxcore",
+  "key_algos": [
+    "ethsecp256k1"
+  ],
+  "extra_codecs": [
+    "ethermint"
+  ],
+  "slip44": 60,
+  "fees": {
+    "fee_tokens": [
+      {
+        "denom": "apundiai",
+        "fixed_min_gas_price": 5000000000,
+        "low_gas_price": 5000000000,
+        "average_gas_price": 5100000000,
+        "high_gas_price": 5200000000
+      }
+    ]
+  },
+  "staking": {
+    "staking_tokens": [
+      {
+        "denom": "apundiai"
+      }
+    ]
+  },
+  "codebase": {
+    "git_repo": "https://github.com/PundiAI/fx-core",
+    "recommended_version": "v8.5.0",
+    "compatible_versions": [
+      "v8.5.0"
+    ],
+    "binaries": {
+      "linux/amd64": "https://github.com/PundiAI/fx-core/releases/download/v8.5.0/fxcored-v8.5.0-linux-amd64",
+      "linux/arm64": "https://github.com/PundiAI/fx-core/releases/download/v8.5.0/fxcored-v8.5.0-linux-arm64",
+      "darwin/amd64": "https://github.com/PundiAI/fx-core/releases/download/v8.5.0/fxcored-v8.5.0-darwin-amd64",
+      "darwin/arm64": "https://github.com/PundiAI/fx-core/releases/download/v8.5.0/fxcored-v8.5.0-darwin-amd64",
+      "windows/amd64": "https://github.com/PundiAI/fx-core/releases/download/v8.5.0/fxcored-v8.5.0-windows-amd64.exe"
+    },
+    "genesis": {
+      "name": "fxv1",
+      "genesis_url": "https://github.com/PundiAI/fx-core/raw/main/public/mainnet/genesis.json"
+    },
+    "consensus": {
+      "type": "cometbft",
+      "version": "v0.38.13"
+    },
+    "sdk": {
+      "type": "cosmos",
+      "version": "v0.50.11",
+      "tag": "v0.50.11"
+    },
+    "ibc": {
+      "type": "go",
+      "version": "v8.5.2"
+    },
+    "tag": "v8.5.0"
+  },
+  "peers": {
+    "seeds": [
+      {
+        "id": "c5877d9d243af1a504caf5b7f7a9c915b3ae94ae",
+        "address": "fxcore-mainnet-seed-node-1.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "b289311ece065c813287e3a25835bb6378999aa5",
+        "address": "fxcore-mainnet-seed-node-2.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "8542cd7e6bf9d260fef543bc49e59be5a3fa9074",
+        "address": "seed.publicnode.com:26656",
+        "provider": "Allnodes ⚡️ Nodes & Staking"
+      }
+    ],
+    "persistent_peers": [
+      {
+        "id": "96f04dffc25ffcce11e179581d2a3ab6cb5535d5",
+        "address": "fxcore-mainnet-node-1.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "836ded83bac83a4ac8511826fa1ad4ca2238f960",
+        "address": "fxcore-mainnet-node-2.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "7c7a260eeefda37eac896ae423e78cf345a2ef70",
+        "address": "fxcore-mainnet-node-3.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "0fee38117655b6961319950d6beb929fb194217c",
+        "address": "fxcore-mainnet-node-4.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "6e8818051a2ca9b8be67a6f2ba48c33d8c489d5c",
+        "address": "fxcore-mainnet-node-5.functionx.io:26656",
+        "provider": "Function X"
+      },
+      {
+        "id": "637077d431f618181597706810a65c826524fd74",
+        "address": "functionx.rpc.nodeshub.online:24256",
+        "provider": "Nodes Hub 🛡️ 100% Slash Protected 🛡️ | Restake ✅"
+      }
+    ]
+  },
+  "apis": {
+    "rpc": [
+      {
+        "address": "https://fx-json.functionx.io",
+        "provider": "Function X"
+      },
+      {
+        "address": "https://functionx.rpc.nodeshub.online:443",
+        "provider": "Nodes Hub 🛡️ 100% Slash Protected 🛡️ | Restake ✅"
+      }
+    ],
+    "rest": [
+      {
+        "address": "https://fx-rest.functionx.io",
+        "provider": "Function X"
+      },
+      {
+        "address": "https://functionx.api.nodeshub.online:443",
+        "provider": "Nodes Hub 🛡️ 100% Slash Protected 🛡️ | Restake ✅"
+      }
+    ],
+    "grpc": [
+      {
+        "address": "https://fx-grpc.functionx.io",
+        "provider": "Function X"
+      },
+      {
+        "address": "https://fx-grpc.portfolio-x.xyz:9090",
+        "provider": "Portfolio X"
+      },
+      {
+        "address": "functionx.grpc.nodeshub.online",
+        "provider": "Nodes Hub"
+      }
+    ],
+    "evm-http-jsonrpc": [
+      {
+        "address": "https://fx-web3.functionx.io",
+        "provider": "Function X"
+      }
+    ]
+  },
+  "explorers": [
+    {
+      "kind": "starscan",
+      "url": "https://starscan.io",
+      "tx_page": "https://starscan.io/fxcore/tx/${txHash}",
+      "account_page": "https://starscan.io/fxcore/address/${accountAddress}"
+    },
+    {
+      "kind": "TC Network",
+      "url": "https://explorer.tcnetwork.io/fx",
+      "tx_page": "https://explorer.tcnetwork.io/fx/transaction/${txHash}",
+      "account_page": "https://explorer.tcnetwork.io/fx/account/${accountAddress}"
+    },
+    {
+      "kind": "ping.pub",
+      "url": "https://ping.pub/fxcore",
+      "tx_page": "https://ping.pub/fxcore/tx/${txHash}"
+    },
+    {
+      "kind": "Nodes Hub 🛡️ 100% Slash Protected 🛡️ | Restake ✅",
+      "url": "https://explorer.nodeshub.online/fxcore/",
+      "tx_page": "https://explorer.nodeshub.online/fxcore/tx/${txHash}",
+      "account_page": "https://explorer.nodeshub.online/fxcore/accounts/${accountAddress}"
+    }
+  ]
+}

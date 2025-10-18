@@ -1,0 +1,125 @@
+{
+  "$schema": "../chain.schema.json",
+  "chain_name": "medasdigital",
+  "status": "live",
+  "network_type": "mainnet",
+  "website": "https://medas-digital.io/",
+  "pretty_name": "Medas Digital Network",
+  "chain_type": "cosmos",
+  "chain_id": "medasdigital-2",
+  "bech32_prefix": "medas",
+  "daemon_name": "medasdigitald",
+  "node_home": "$HOME/.medasdigital",
+  "slip44": 118,
+  "key_algos": [
+    "secp256k1"
+  ],
+  "fees": {
+    "fee_tokens": [
+      {
+        "denom": "umedas",
+        "low_gas_price": 0.1,
+        "average_gas_price": 0.25,
+        "high_gas_price": 0.4
+      }
+    ]
+  },
+  "staking": {
+    "staking_tokens": [
+      {
+        "denom": "umedas"
+      }
+    ]
+  },
+  "codebase": {
+    "git_repo": "https://github.com/oxygene76/medasdigital-2/",
+    "recommended_version": "v1.0.0",
+    "compatible_versions": [
+      "v1.0.0"
+    ],
+    "genesis": {
+      "genesis_url": "https://raw.githubusercontent.com/oxygene76/medasdigital-2/genesis/mainnet/config/genesis.json"
+    }
+  },
+  "logo_URIs": {
+    "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/medasdigital/images/medas.png"
+  },
+  "description": "Decentralized scientific computing platform for computationally intensive research. Distributed network of provider nodes executes simulations and analyses across astrophysics, molecular dynamics, climate modeling, and AI training. Initial deployment focuses on astronomical computing including the Planet 9 search through large-scale N-body simulations and orbital parameter exploration.",
+  "peers": {
+    "seeds": [],
+    "persistent_peers": [
+      {
+        "id": "51ca3b0a3663af88566b32ecfd77948e55000bcc",
+        "address": "88.205.101.195:26656",
+        "provider": "Neptun Validator"
+      },
+      {
+        "id": "90be2e9f0a279372d2931e38f15025db9a847dbd",
+        "address": "88.205.101.196:26656",
+        "provider": "Uranus Validator"
+      },
+      {
+        "id": "0e567c9efe6e6d15f9b3257679398368c2ab04bb",
+        "address": "88.205.101.197:26656",
+        "provider": "Saturn Validator"
+      },
+      {
+        "id": "669d1b9f9c4bb99df594abaee4b13ae1b14d37a6",
+        "address": "64.251.18.192:26656",
+        "provider": "Mars Validator"
+      },
+      {
+        "id": "cbfcd111ee19483dbbfed0919ac0d23119c5f0fe",
+        "address": "67.207.180.166:26656",
+        "provider": "Jupiter Validator"
+      }
+    ]
+  },
+  "apis": {
+    "rpc": [
+      {
+        "address": "https://rpc.medas-digital.io:26657/",
+        "provider": "Neptun Validator"
+      },
+      {
+        "address": "https://medasdigital_mainnet_rpc.chain.whenmoonwhenlambo.money",
+        "provider": "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥"
+      }
+    ],
+    "rest": [
+      {
+        "address": "https://lcd.medas-digital.io:1317/",
+        "provider": "Neptun Validator"
+      },
+      {
+        "address": "https://medasdigital_mainnet_api.chain.whenmoonwhenlambo.money",
+        "provider": "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥"
+      }
+    ],
+    "grpc": [
+      {
+        "address": "grpc.medas-digital.io:9090",
+        "provider": "Neptun Validator"
+      }
+    ]
+  },
+  "explorers": [
+    {
+      "kind": "Ping",
+      "url": "https://explorer.medas-digital.io:3100/medasdigital",
+      "tx_page": "https://explorer.medas-digital.io:3100/medasdigital/transactions/${txHash}",
+      "account_page": "explorer.medas-digital.io:3100/medasdigital/accounts/${accountAddress}"
+    },
+    {
+      "kind": "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥",
+      "url": "https://explorer.whenmoonwhenlambo.money/medasdigital",
+      "tx_page": "https://explorer.whenmoonwhenlambo.money/medasdigital/tx/${txHash}",
+      "account_page": "https://explorer.whenmoonwhenlambo.money/medasdigital/account/${accountAddress}"
+    }
+  ],
+  "images": [
+    {
+      "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/medasdigital/images/medas.png"
+    }
+  ]
+}

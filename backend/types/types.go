@@ -5,12 +5,16 @@ import "encoding/json"
 type PoolResponse struct {
 	Pools []struct {
 		ID         json.Number `json:"id"`
+		Type       string      `json:"type"`
 		PoolAssets []struct {
 			Token struct {
 				Denom  string `json:"denom"`
 				Amount string `json:"amount"`
 			} `json:"token"`
 		} `json:"pool_assets"`
+		TotalWeight string `json:"total_weight"`
+		SwapFee     string `json:"swap_fee"`
+		ExitFee     string `json:"exit_fee"`
 	} `json:"pools"`
 	Pagination struct {
 		NextKey string `json:"next_key"`
@@ -18,33 +22,18 @@ type PoolResponse struct {
 	} `json:"pagination"`
 }
 
-// Pool - Απλοποιημένη δομή pool
-type Pool struct {
-	ID         string
-	PoolAssets []PoolAsset
-}
-
-type PoolAsset struct {
-	Token Token
-}
-
-type Token struct {
-	Denom  string
-	Amount string
-}
-
-// Μετατροπή από PoolResponse σε Pool
-func ConvertPoolResponseToPool(poolResponse PoolResponse) []Pool {
-	var pools []Pool
+// Μετατροπή από PoolResponse σε BasicPool
+func ConvertPoolResponseToPool(poolResponse PoolResponse) []BasicPool {
+	var pools []BasicPool
 
 	for _, respPool := range poolResponse.Pools {
-		pool := Pool{
-			ID: respPool.ID.String(),
+		pool := BasicPool{
+			Id: respPool.ID.String(),
 		}
 
 		for _, asset := range respPool.PoolAssets {
-			poolAsset := PoolAsset{
-				Token: Token{
+			poolAsset := BasicPoolAsset{
+				Token: BasicCoin{
 					Denom:  asset.Token.Denom,
 					Amount: asset.Token.Amount,
 				},
@@ -58,14 +47,6 @@ func ConvertPoolResponseToPool(poolResponse PoolResponse) []Pool {
 	return pools
 }
 
-type NumiaToken struct {
-	Symbol    string  `json:"symbol"`
-	Name      string  `json:"name"`
-	Price     float64 `json:"price"`
-	Denom     string  `json:"denom"`
-	Liquidity float64 `json:"liquidity"`
-}
-
 type TokenInfo struct {
 	Denom       string  `json:"denom"`
 	Symbol      string  `json:"symbol"`
@@ -75,22 +56,11 @@ type TokenInfo struct {
 	PoolCount   int     `json:"pool_count"`
 	Source      string  `json:"source"`
 	BlockHeight int64   `json:"block_height"`
-	Chain       string  `json:"chain"` // "osmosis" ή "dydx"
+	Chain       string  `json:"chain"` // "osmosis"
+	LogoURI     string  `json:"logo_uri,omitempty"`
 }
 
-// DYDX SPECIFIC STRUCTS
-type DydxMarketResponse struct {
-	Markets map[string]DydxMarket `json:"markets"`
-}
-
-// DydxMarket - Ενημερωμένη δομή με τιμές
-type DydxMarket struct {
-	MarketID     string  `json:"marketId"`
-	Ticker       string  `json:"ticker"`
-	BaseAsset    string  `json:"baseAsset"`
-	QuoteAsset   string  `json:"quoteAsset"`
-	OraclePrice  float64 `json:"oraclePrice,omitempty"`
-	Volume24H    float64 `json:"volume24H,omitempty"`
-	MinExchanges int     `json:"minExchanges"`
-	Status       string  `json:"status,omitempty"`
+// BlockHeightResponse - Απάντηση από το API για το τρέχον block height
+type BlockHeightResponse struct {
+	Height int64 `json:"height"`
 }

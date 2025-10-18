@@ -70,9 +70,16 @@ func (s *CSVStorage) saveChainTokens(chain string, tokens []types.TokenInfo) err
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// Write header
+	// Write header based on chain
+	var priceHeader string
+	if chain == "osmosis" {
+		priceHeader = "Price_OSMO"
+	} else {
+		priceHeader = "Price_USD"
+	}
+
 	header := []string{
-		"Chain", "Symbol", "Name", "Price_USD", "Liquidity", "Pool_Count",
+		"Chain", "Symbol", "Name", priceHeader, "Liquidity", "Pool_Count",
 		"Denom", "Source", "Block_Height", "Timestamp",
 	}
 	if err := writer.Write(header); err != nil {
@@ -87,11 +94,20 @@ func (s *CSVStorage) saveChainTokens(chain string, tokens []types.TokenInfo) err
 			liquidityStr = strconv.FormatFloat(token.Liquidity, 'f', 2, 64)
 		}
 
+		// Format price with appropriate precision based on chain
+		var priceStr string
+		if chain == "osmosis" {
+			// Use higher precision for OSMO so very small values are preserved
+			priceStr = strconv.FormatFloat(token.Price, 'f', 12, 64)
+		} else {
+			priceStr = strconv.FormatFloat(token.Price, 'f', 2, 64)
+		}
+
 		record := []string{
 			token.Chain,
 			token.Symbol,
 			token.Name,
-			strconv.FormatFloat(token.Price, 'f', 6, 64),
+			priceStr,
 			liquidityStr,
 			strconv.Itoa(token.PoolCount),
 			token.Denom,

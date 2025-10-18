@@ -1,0 +1,387 @@
+{
+  "$schema": "../chain.schema.json",
+  "chain_name": "juno",
+  "status": "live",
+  "network_type": "mainnet",
+  "website": "https://www.junonetwork.io/",
+  "pretty_name": "Juno",
+  "chain_type": "cosmos",
+  "chain_id": "juno-1",
+  "bech32_prefix": "juno",
+  "daemon_name": "junod",
+  "node_home": "$HOME/.juno",
+  "key_algos": [
+    "secp256k1"
+  ],
+  "slip44": 118,
+  "fees": {
+    "fee_tokens": [
+      {
+        "denom": "ujuno",
+        "fixed_min_gas_price": 0.075,
+        "low_gas_price": 0.075,
+        "average_gas_price": 0.1,
+        "high_gas_price": 0.125
+      },
+      {
+        "denom": "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9",
+        "fixed_min_gas_price": 0.003,
+        "low_gas_price": 0.003,
+        "average_gas_price": 0.0035,
+        "high_gas_price": 0.004
+      }
+    ]
+  },
+  "staking": {
+    "staking_tokens": [
+      {
+        "denom": "ujuno"
+      }
+    ]
+  },
+  "codebase": {
+    "git_repo": "https://github.com/CosmosContracts/juno",
+    "recommended_version": "v27.0.0",
+    "compatible_versions": [
+      "v27.0.0"
+    ],
+    "binaries": {
+      "linux/amd64": "https://github.com/CosmosContracts/juno/releases/download/v27.0.0/junod"
+    },
+    "consensus": {
+      "type": "cometbft",
+      "version": "v0.37.8"
+    },
+    "genesis": {
+      "genesis_url": "https://download.dimi.sh/juno-phoenix2-genesis.tar.gz"
+    },
+    "sdk": {
+      "type": "cosmos",
+      "version": "v0.47.15"
+    },
+    "ibc": {
+      "type": "go",
+      "version": "v7.6.0"
+    },
+    "cosmwasm": {
+      "version": "v0.46.0",
+      "enabled": true
+    }
+  },
+  "logo_URIs": {
+    "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/juno/images/juno.png",
+    "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/juno/images/juno.svg"
+  },
+  "description": "Juno is a completely community owned and operated smart contract platform.",
+  "peers": {
+    "seeds": [
+      {
+        "id": "babc3f3f7804933265ec9c40ad94f4da8e9e0017",
+        "address": "seed.rhinostake.com:12656",
+        "provider": "RHINO 🦏"
+      },
+      {
+        "id": "90b09362d9ce3845096c4938eea0dba682b0ad2c",
+        "address": "juno-seed-new.blockpane.com:26656"
+      },
+      {
+        "id": "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0",
+        "address": "seeds.polkachu.com:12656",
+        "provider": "Polkachu"
+      },
+      {
+        "id": "20e1000e88125698264454a884812746c2eb4807",
+        "address": "seeds.lavenderfive.com:12656",
+        "provider": "Lavender.Five Nodes 🐝"
+      },
+      {
+        "id": "ea67180befe4d9ca71142d21ada8ff58cc08f71c",
+        "address": "seeds.goldenratiostaking.net:1627",
+        "provider": "Golden Ratio Staking"
+      },
+      {
+        "id": "8542cd7e6bf9d260fef543bc49e59be5a3fa9074",
+        "address": "seed.publicnode.com:26656",
+        "provider": "Allnodes ⚡️ Nodes & Staking"
+      },
+      {
+        "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
+        "address": "juno-mainnet-seed.autostake.com:27136",
+        "provider": "AutoStake 🛡️ Slash Protected"
+      },
+      {
+        "id": "509f6dbae3133a9df177edea051b31e1210b117e",
+        "address": "seed-juno-01.stakeflow.io:2307",
+        "provider": "Stakeflow"
+      },
+      {
+        "id": "77c33f62d34c20a0e795240f4548ab741ea558d9",
+        "address": "138.201.21.121:24956",
+        "provider": "Validatrium"
+      },
+      {
+        "id": "cfc31e41e66527a3b12b65c06aa3eac58e27c6ab",
+        "address": "seed.juno.validatus.com:3000",
+        "provider": "Validatus"
+      },
+      {
+        "id": "b85358e035343a3b15e77e1102857dcdaf70053b",
+        "address": "seeds.bluestake.net:28856",
+        "provider": "BlueStake 🚀"
+      }
+    ],
+    "persistent_peers": [
+      {
+        "id": "7f593757c0cde8972ce929381d8ac8e446837811",
+        "address": "178.18.255.244:26656"
+      },
+      {
+        "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
+        "address": "juno-mainnet-peer.autostake.com:27136",
+        "provider": "AutoStake 🛡️ Slash Protected"
+      },
+      {
+        "id": "3ee2034cf0180e4d50f7b3ed952472add3316faf",
+        "address": "juno.peer.stavr.tech:1066",
+        "provider": "🔥STAVR🔥"
+      },
+      {
+        "id": "509f6dbae3133a9df177edea051b31e1210b117e",
+        "address": "peer-juno-01.stakeflow.io:2307",
+        "provider": "Stakeflow"
+      },
+      {
+        "id": "397281b9fa745482127093f08ac05724c2b8d6f8",
+        "address": "65.108.195.213:33656",
+        "provider": "StakeTown"
+      },
+      {
+        "id": "77c33f62d34c20a0e795240f4548ab741ea558d9",
+        "address": "138.201.21.121:24956",
+        "provider": "Validatrium"
+      },
+      {
+        "id": "73ef1c0f9bc77fd925decf7fa41f22a35b5dc76d",
+        "address": "juno.declab.pro:26612",
+        "provider": "Decloud Nodes Lab"
+      },
+      {
+        "id": "637077d431f618181597706810a65c826524fd74",
+        "address": "juno.rpc.nodeshub.online:12656",
+        "provider": "Nodes Hub 🛡️ 100% Slash Protected 🛡️ | Restake ✅"
+      }
+    ]
+  },
+  "apis": {
+    "rpc": [
+      {
+        "address": "https://rpc-juno.itastakers.com",
+        "provider": "itastakers"
+      },
+      {
+        "address": "https://juno.rpc.m.stavr.tech",
+        "provider": "🔥STAVR🔥"
+      },
+      {
+        "address": "https://juno-rpc.polkachu.com",
+        "provider": "Polkachu"
+      },
+      {
+        "address": "https://rpc.lavenderfive.com:443/juno",
+        "provider": "Lavender.Five Nodes 🐝"
+      },
+      {
+        "address": "https://juno-rpc.kleomedes.network",
+        "provider": "Kleomedes"
+      },
+      {
+        "address": "https://juno-rpc.stakeandrelax.net",
+        "provider": "Stake&Relax Validator 🦥"
+      },
+      {
+        "address": "https://rpc-juno-01.stakeflow.io",
+        "provider": "Stakeflow"
+      },
+      {
+        "address": "https://juno-rpc.publicnode.com:443",
+        "provider": "Allnodes ⚡️ Nodes & Staking"
+      },
+      {
+        "address": "https://juno-rpc.stake-town.com",
+        "provider": "StakeTown"
+      },
+      {
+        "address": "https://rpc.juno.validatus.com",
+        "provider": "Validatus"
+      },
+      {
+        "address": "https://juno-rpc.cogwheel.zone",
+        "provider": "Cogwheel"
+      },
+      {
+        "address": "https://juno.declab.pro:26610",
+        "provider": "Decloud Nodes Lab"
+      },
+      {
+        "address": "https://juno-rpc.chainroot.io",
+        "provider": "Chainroot"
+      }
+    ],
+    "rest": [
+      {
+        "address": "https://rest.lavenderfive.com:443/juno",
+        "provider": "Lavender.Five Nodes 🐝"
+      },
+      {
+        "address": "https://juno.api.m.stavr.tech",
+        "provider": "🔥STAVR🔥"
+      },
+      {
+        "address": "https://juno-api.polkachu.com",
+        "provider": "Polkachu"
+      },
+      {
+        "address": "https://juno-api.kleomedes.network",
+        "provider": "Kleomedes"
+      },
+      {
+        "address": "https://juno-api.stakeandrelax.net",
+        "provider": "Stake&Relax Validator 🦥"
+      },
+      {
+        "address": "https://api-juno-01.stakeflow.io",
+        "provider": "Stakeflow"
+      },
+      {
+        "address": "https://juno-rest.publicnode.com",
+        "provider": "Allnodes ⚡️ Nodes & Staking"
+      },
+      {
+        "address": "https://juno-api.stake-town.com",
+        "provider": "StakeTown"
+      },
+      {
+        "address": "https://api.juno.validatus.com",
+        "provider": "Validatus"
+      },
+      {
+        "address": "https://juno-api.cogwheel.zone",
+        "provider": "Cogwheel"
+      },
+      {
+        "address": "https://juno.declab.pro:443",
+        "provider": "Decloud Nodes Lab"
+      },
+      {
+        "address": "https://juno-api.chainroot.io",
+        "provider": "Chainroot"
+      }
+    ],
+    "grpc": [
+      {
+        "address": "juno-grpc.polkachu.com:12690",
+        "provider": "Polkachu"
+      },
+      {
+        "address": "juno.grpc.m.stavr.tech:443",
+        "provider": "🔥STAVR🔥"
+      },
+      {
+        "address": "juno-grpc.stakeandrelax.net:12690",
+        "provider": "Stake&Relax Validator 🦥"
+      },
+      {
+        "address": "juno.grpc.kleomedes.network",
+        "provider": "Kleomedes"
+      },
+      {
+        "address": "juno.lavenderfive.com:443",
+        "provider": "Lavender.Five Nodes 🐝"
+      },
+      {
+        "address": "grpc-juno-01.stakeflow.io:2302",
+        "provider": "Stakeflow"
+      },
+      {
+        "address": "juno-grpc.publicnode.com:443",
+        "provider": "Allnodes ⚡️ Nodes & Staking"
+      },
+      {
+        "address": "juno-grpc.cogwheel.zone:443",
+        "provider": "Cogwheel"
+      },
+      {
+        "address": "juno-grpc.chainroot.io:443",
+        "provider": "Chainroot"
+      }
+    ]
+  },
+  "explorers": [
+    {
+      "kind": "ezstaking",
+      "url": "https://ezstaking.app/juno",
+      "tx_page": "https://ezstaking.app/juno/txs/${txHash}",
+      "account_page": "https://ezstaking.app/juno/account/${accountAddress}"
+    },
+    {
+      "kind": "ping.pub",
+      "url": "https://ping.pub/juno",
+      "tx_page": "https://ping.pub/juno/tx/${txHash}"
+    },
+    {
+      "kind": "🔥STAVR🔥",
+      "url": "https://explorer.stavr.tech/juno",
+      "tx_page": "https://explorer.stavr.tech/juno/transactions/${txHash}",
+      "account_page": "https://explorer.stavr.tech/juno/accounts/${accountAddress}"
+    },
+    {
+      "kind": "Stakeflow",
+      "url": "https://stakeflow.io/juno",
+      "account_page": "https://stakeflow.io/juno/accounts/${accountAddress}"
+    },
+    {
+      "kind": "Decloud Nodes Lab",
+      "url": "https://explorer.declab.pro/Juno",
+      "tx_page": "https://explorer.declab.pro/Juno/tx/${txHash}"
+    },
+    {
+      "kind": "staking-explorer.com",
+      "url": "https://staking-explorer.com/explorer/juno",
+      "tx_page": "https://staking-explorer.com/transaction.php?chain=juno&tx=${txHash}",
+      "account_page": "https://staking-explorer.com/account.php?chain=juno&addr=${accountAddress}"
+    },
+    {
+      "kind": "atomscan",
+      "url": "https://atomscan.com/juno",
+      "tx_page": "https://atomscan.com/juno/transactions/${txHash}",
+      "account_page": "https://atomscan.com/juno/accounts/${accountAddress}"
+    },
+    {
+      "kind": "TC Network",
+      "url": "https://explorer.tcnetwork.io/juno",
+      "tx_page": "https://explorer.tcnetwork.io/juno/transaction/${txHash}"
+    },
+    {
+      "kind": "Stake Hub by Kleomedes",
+      "url": "https://www.stake-hub.xyz/juno"
+    },
+    {
+      "kind": "Chainroot",
+      "url": "https://explorer.chainroot.io/juno",
+      "tx_page": "https://explorer.chainroot.io/juno/transactions/${txHash}",
+      "account_page": "https://explorer.chainroot.io/juno/accounts/${accountAddress}"
+    },
+    {
+      "kind": "Valopers",
+      "url": "https://juno.valopers.com/",
+      "tx_page": "https://juno.valopers.com/transactions/${txHash}",
+      "account_page": "https://juno.valopers.com/account/${accountAddress}"
+    }
+  ],
+  "images": [
+    {
+      "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/juno/images/juno.png",
+      "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/juno/images/juno.svg"
+    }
+  ]
+}

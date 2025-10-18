@@ -1,0 +1,39 @@
+# Database files - Μην ανεβάζεις το database
+backend/data/database/
+backend/data/database/*.db
+backend/data/database/*.db-shm
+backend/data/database/*.db-wal
+
+# Go build artifacts
+backend/*.exe
+backend/osmosis-tracker.exe
+*.exe
+
+# Log files
+backend/logs/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Node modules (αν έχεις frontend)
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local

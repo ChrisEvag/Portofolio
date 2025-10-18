@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
+	"net/http"
 	"time"
 
 	"portofoliov1/api"
@@ -18,240 +18,134 @@ type Config struct {
 	RefreshMinutes time.Duration
 	StorageType    string
 	DataFolder     string
-	Chains         []string // ["osmosis", "dydx"]
+	Chains         []string // ["osmosis"]
 }
 
 var config = Config{
 	DisplayLimit:   25,
 	RequestTimeout: 30 * time.Second,
-	RefreshMinutes: 100000 * time.Millisecond,
-	StorageType:    "csv",
-	DataFolder:     "data/crypto-tokens",
-	Chains:         []string{"osmosis", "dydx"}, // Αλυσίδες που θα παρακολουθούμε
-}
-
-// StorageManager - Διαχειριστής αποθήκευσης
-type StorageManager struct {
-	storage storage.StorageInterface
-}
-
-func NewStorageManager(storageType, dataFolder string) (*StorageManager, error) {
-	var store storage.StorageInterface
-
-	switch storageType {
-	case "csv":
-		store = storage.NewCSVStorage(dataFolder)
-	default:
-		return nil, fmt.Errorf("μη υποστηριζόμενος τύπος αποθήκευσης: %s", storageType)
-	}
-
-	return &StorageManager{
-		storage: store,
-	}, nil
-}
-
-func (sm *StorageManager) Save(tokens []types.TokenInfo) error {
-	return sm.storage.Save(tokens)
-}
-
-func (sm *StorageManager) GetStorageName() string {
-	return sm.storage.GetName()
+	RefreshMinutes: 1 * time.Second,     // ⚡ ΕΠΑΓΓΕΛΜΑΤΙΚΟ: Ανανέωση κάθε 1 δευτερόλεπτο
+	StorageType:    "sqlite",            // 💾 SQLite για historical data
+	DataFolder:     "data/database",     // Database folder
+	Chains:         []string{"osmosis"}, // Αλυσίδες που θα παρακολουθούμε
 }
 
 func main() {
-	storageManager, err := NewStorageManager(config.StorageType, config.DataFolder)
+	// Initialize chain registry updater (1 φορά την εβδομάδα)
+	chainRegistryUpdater := utils.NewChainRegistryUpdater()
+	if err := chainRegistryUpdater.Start(); err != nil {
+		log.Printf("⚠️  Προειδοποίηση: Αποτυχία εκκίνησης chain registry updater: %v", err)
+	}
+	defer chainRegistryUpdater.Stop()
+
+	// Initialize asset service from chain registry
+	assetService, err := types.NewAssetService()
 	if err != nil {
-		log.Fatalf("❌ Σφάλμα αρχικοποίησης αποθήκευσης: %v", err)
+		log.Fatalf("❌ Σφάλμα αρχικοποίησης AssetService: %v", err)
 	}
 
-	showWelcomeMessage(storageManager.GetStorageName())
+	// Initialize SQLite storage (για το HTTP API να διαβάζει)
+	sqliteStorage, err := storage.NewSQLiteStorage(config.DataFolder)
+	if err != nil {
+		log.Fatalf("❌ Σφάλμα αρχικοποίησης SQLite storage: %v", err)
+	}
+	defer sqliteStorage.Close()
+
+	// Initialize HTTP server με access στο database
+	httpServer := api.NewHTTPServer(8080, chainRegistryUpdater, sqliteStorage)
+
+	// Start HTTP server σε ξεχωριστό goroutine
+	go func() {
+		if err := httpServer.Start(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("❌ Σφάλμα HTTP server: %v", err)
+		}
+	}()
+
+	showWelcomeMessage()
 
 	if config.RefreshMinutes > 0 {
-		startAutoRefresh(storageManager)
+		startAutoRefresh(assetService, httpServer, sqliteStorage)
 	} else {
-		runSingleExecution(storageManager)
+		runSingleExecution(assetService, httpServer, sqliteStorage)
 	}
 }
 
-func showWelcomeMessage(storageType string) {
-	fmt.Println("🚀 Multi-Chain Portfolio Tracker")
-	fmt.Printf("📁 Τύπος Αποθήκευσης: %s\n", storageType)
-	fmt.Printf("⛓️  Αλυσίδες: %v\n", config.Chains)
+func showWelcomeMessage() {
+	fmt.Println("🚀 Professional Osmosis Data Collector")
+	fmt.Printf("💾 Storage: SQLite (Historical Data)\n")
+	fmt.Printf("⛓️  Chains: %v\n", config.Chains)
+	fmt.Println("⚡ Update Interval: 1 SECOND (Real-time)")
 	fmt.Println("================================")
-	fmt.Println("🔄 Λήψη tokens από όλες τις αλυσίδες...")
-	fmt.Println()
 }
 
-func runSingleExecution(storageManager *StorageManager) {
-	var allTokens []types.TokenInfo
-
-	// Αρχικοποίηση client
-	client := api.NewAPIClient()
-
+func runSingleExecution(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) {
 	// Εκτέλεση για κάθε αλυσίδα
 	for _, chain := range config.Chains {
-		fmt.Printf("\n🎯 ΕΠΕΞΕΡΓΑΣΙΑ ΑΛΥΣΙΔΑΣ: %s\n", strings.ToUpper(chain))
-		fmt.Println("------------------------------")
+		// fmt.Printf("\n🎯 ΕΠΕΞΕΡΓΑΣΙΑ ΑΛΥΣΙΔΑΣ: %s\n", strings.ToUpper(chain))
+		// fmt.Println("------------------------------")
 
-		tokens, err := fetchChainData(client, chain)
+		_, err := fetchChainData(chain, assetService, httpServer, sqliteStorage)
 		if err != nil {
 			log.Printf("❌ Σφάλμα για %s: %v", chain, err)
 			continue
 		}
-
-		allTokens = append(allTokens, tokens...)
-	}
-
-	// Αποθήκευση όλων των tokens
-	if len(allTokens) > 0 {
-		if err := storageManager.Save(allTokens); err != nil {
-			log.Printf("❌ Σφάλμα αποθήκευσης: %v", err)
-		} else {
-			showCompletionMessage(allTokens, storageManager.GetStorageName())
-		}
 	}
 }
 
-func fetchChainData(client *api.APIClient, chain string) ([]types.TokenInfo, error) {
+func fetchChainData(chain string, assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) ([]types.TokenInfo, error) {
 	switch chain {
 	case "osmosis":
-		return fetchOsmosisData(client)
-	case "dydx":
-		return fetchDydxData(client)
+		return fetchOsmosisData(assetService, httpServer, sqliteStorage)
 	default:
 		return nil, fmt.Errorf("μη υποστηριζόμενη αλυσίδα: %s", chain)
 	}
 }
 
-func fetchOsmosisData(client *api.APIClient) ([]types.TokenInfo, error) {
-	// Ταχυμέτρηση endpoints
-	client.SpeedTestEndpoints("osmosis")
+func fetchOsmosisData(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) ([]types.TokenInfo, error) {
+	// Αρχικοποίηση του νέου Osmosis Pool Client
+	osmosisClient := api.NewOsmosisPoolClient()
 
-	// Πρώτα δοκιμάζουμε Numia API
-	tokens, blockHeight, err := tryNumiaAPI(client)
-	if err == nil {
-		// Προσθήκη chain info
-		for i := range tokens {
-			tokens[i].Chain = "osmosis"
-		}
-		return tokens, nil
-	}
-
-	// Fallback σε LCD API
-	fmt.Println("2. 🔄 ΕΦΕΔΡΙΚΗ: Speed-Optimized Fallback System...")
-
-	pools, err := client.GetPoolsWithFallback()
+	// 1. Λήψη pools
+	pools, err := osmosisClient.GetAllPools(1000, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	blockHeight, err = getCurrentBlockHeight(client, "osmosis")
+	// 2. Υπολογισμός τιμών για ΟΛΟΥΣ τους pools (στη μνήμη)
+	poolPrices, err := osmosisClient.GetAllPoolPrices(pools, assetService)
 	if err != nil {
-		return nil, fmt.Errorf("δεν μπόρεσε να ληφθεί block height: %w", err)
+		fmt.Printf("   ⚠️  Προειδοποίηση: αποτυχία υπολογισμού τιμών pools: %v\n", err)
+		poolPrices = []types.PoolPrice{}
 	}
 
-	fmt.Printf("   ✅ Βρέθηκαν %d pools από block #%d\n", len(pools), blockHeight)
-
-	// Εξαγωγή tokens
-	tokensMap := utils.ExtractTokensFromPools(pools)
-	tokensWithPrices := utils.GetTokenPrices(tokensMap)
-
-	// Προσθήκη metadata
-	for i := range tokensWithPrices {
-		tokensWithPrices[i].Source = "LCD API"
-		tokensWithPrices[i].BlockHeight = blockHeight
-		tokensWithPrices[i].Chain = "osmosis"
+	// 3. ⚡ ΑΠΟΘΗΚΕΥΣΗ ΣΕ SQLITE (Historical Data)
+	// Αποθήκευση ΟΛΩΝ των pools (raw data)
+	if err := sqliteStorage.SavePools(pools); err != nil {
+		log.Printf("❌ Failed to save pools: %v", err)
 	}
 
-	return tokensWithPrices, nil
-}
-
-func fetchDydxData(client *api.APIClient) ([]types.TokenInfo, error) {
-	// Ταχυμέτρηση endpoints
-	client.SpeedTestEndpoints("dydx")
-
-	fmt.Println("1. 🔍 Λήψη δεδομένων από dYdX API...")
-
-	markets, err := client.GetDydxMarketsWithFallback()
-	if err != nil {
-		return nil, err
+	// Αποθήκευση pool prices (υπολογισμένες τιμές μεταξύ tokens)
+	if err := sqliteStorage.SavePoolPrices(poolPrices); err != nil {
+		log.Printf("❌ Failed to save pool prices: %v", err)
 	}
 
-	blockHeight, err := getCurrentBlockHeight(client, "dydx")
-	if err != nil {
-		fmt.Printf("   ⚠️  Προειδοποίηση: %v\n", err)
-		blockHeight = 0
-	}
+	// Silent mode - μόνο errors
 
-	fmt.Printf("   ✅ Βρέθηκαν %d markets από block #%d\n", len(markets), blockHeight)
-
-	// Εξαγωγή tokens από markets
-	tokensMap := utils.ExtractDydxTokensFromMarkets(markets)
-	tokensWithPrices := utils.GetTokenPrices(tokensMap)
-
-	// Προσθήκη metadata
-	for i := range tokensWithPrices {
-		tokensWithPrices[i].Source = "dYdX API"
-		tokensWithPrices[i].BlockHeight = blockHeight
-		tokensWithPrices[i].Chain = "dydx"
-	}
-
-	return tokensWithPrices, nil
-}
-
-// tryNumiaAPI - Προσπάθεια λήψης δεδομένων από Numia API
-func tryNumiaAPI(client *api.APIClient) ([]types.TokenInfo, int64, error) {
-	fmt.Println("1. 🔍 ΠΡΩΤΕΥΟΝ: Δοκιμή Numia API...")
-
-	tokens, err := client.GetNumiaTokens()
-	if err != nil {
-		fmt.Printf("   ❌ Numia API απέτυχε: %v\n\n", err)
-		return nil, 0, err
-	}
-
-	fmt.Printf("   ✅ Numia API: Βρέθηκαν %d tokens\n", len(tokens))
-
-	// Λήψη block height για Numia data
-	blockHeight, err := getCurrentBlockHeight(client, "osmosis")
-	if err != nil {
-		fmt.Printf("   ⚠️  Προειδοποίηση: %v\n", err)
-		blockHeight = 0 // Default value αν αποτύχει
-	}
-
-	return tokens, blockHeight, nil
-}
-
-func getCurrentBlockHeight(client *api.APIClient, chain string) (int64, error) {
-	var endpoints []api.EndpointInfo
-
-	switch chain {
-	case "osmosis":
-		endpoints = client.LCDEndpoints
-	case "dydx":
-		endpoints = client.DydxEndpoints
-	}
-
-	for _, endpoint := range endpoints {
-		if endpoint.Working {
-			height, err := client.GetLatestBlockHeight(endpoint.URL, chain)
-			if err == nil {
-				fmt.Printf("   📦 Τρέχον Block Height: %d\n", height)
-				return height, nil
-			}
-		}
-	}
-	return 0, fmt.Errorf("δεν μπόρεσε να ληφθεί block height")
+	// Επιστρέφουμε κενό slice καθώς δε χρειαζόμαστε πλέον τα token infos
+	return []types.TokenInfo{}, nil
 }
 
 // startAutoRefresh - Αρχή auto-refresh λειτουργίας
-func startAutoRefresh(storageManager *StorageManager) {
-	fmt.Printf("🔄 Λειτουργία Auto-Refresh - Ανανέωση κάθε %v\n", config.RefreshMinutes)
-	fmt.Printf("📁 Αποθήκευση σε: %s\n", storageManager.GetStorageName())
+func startAutoRefresh(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) {
+	fmt.Printf("⚡ Real-Time Mode - Update κάθε %v\n", config.RefreshMinutes)
+	fmt.Printf("💾 Storage: SQLite (Historical)\n")
+	fmt.Println("🌐 API: http://localhost:8080")
+	fmt.Println("📊 Database συλλέγει data κάθε δευτερόλεπτο...")
 	fmt.Println("   Πατήστε Ctrl+C για διακοπή")
 	fmt.Println()
 
 	// Τρέχει αμέσως την πρώτη φορά
-	runSingleExecution(storageManager)
+	runSingleExecution(assetService, httpServer, sqliteStorage)
 
 	// Δημιουργία ticker για auto-refresh
 	ticker := time.NewTicker(config.RefreshMinutes)
@@ -261,49 +155,12 @@ func startAutoRefresh(storageManager *StorageManager) {
 
 	for range ticker.C {
 		executionCount++
-		fmt.Printf("\n" + repeatString(50, "="))
-		fmt.Printf("\n🔄 ΑΥΤΟΜΑΤΗ ΑΝΑΝΕΩΣΗ #%d - %s\n",
-			executionCount, time.Now().Format("02/01/2006 15:04:05"))
-		fmt.Println(repeatString(50, "="))
+		runSingleExecution(assetService, httpServer, sqliteStorage)
 
-		runSingleExecution(storageManager)
-
-		nextRun := time.Now().Add(config.RefreshMinutes)
-		fmt.Printf("\n⏰ Επόμενη ανανέωση: %s\n", nextRun.Format("15:04:05"))
+		// Κάθε 60 δευτερόλεπτα δείχνε stats
+		if executionCount%60 == 0 {
+			fmt.Printf("\n📊 [%d snapshots collected] - %s\n",
+				executionCount, time.Now().Format("15:04:05"))
+		}
 	}
-}
-
-// showCompletionMessage - Εμφάνιση μηνύματος ολοκλήρωσης
-func showCompletionMessage(tokens []types.TokenInfo, storageType string) {
-	tokenCount := len(tokens)
-	var blockHeight int64
-	if tokenCount > 0 {
-		blockHeight = tokens[0].BlockHeight
-	}
-
-	fmt.Println("\n🎯 ΟΛΟΚΛΗΡΩΣΗ ΕΠΙΤΥΧΗΣ!")
-	fmt.Println("=======================")
-	fmt.Printf("✅ Λήφθηκαν %d tokens\n", tokenCount)
-	fmt.Printf("📦 Block Height: #%d\n", blockHeight)
-	fmt.Printf("💾 Αποθήκευση σε: %s\n", storageType)
-	fmt.Printf("🕐 Χρόνος εκτέλεσης: %s\n", time.Now().Format("15:04:05"))
-}
-
-// Βοηθητικές συναρτήσεις
-
-// repeatString - Επανάληψη string
-func repeatString(n int, char string) string {
-	result := ""
-	for i := 0; i < n; i++ {
-		result += char
-	}
-	return result
-}
-
-// min - Επιστροφή ελάχιστης τιμής
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
