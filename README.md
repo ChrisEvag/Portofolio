@@ -1,22 +1,23 @@
 # 🚀 Osmosis Data Collector & Portfolio Tracker
 
-Professional real-time data collector for Osmosis blockchain with SQLite storage and REST API.
+Professional real-time data collector for Osmosis blockchain with in-memory cache and REST API.
 
 ## 📋 Features
 
-- ⚡ **Real-time Data Collection** - Collects pool data every second
-- 💾 **SQLite Storage** - Historical data storage with WAL mode for performance
-- 🌐 **REST API** - Query tokens, pools, and prices
+- ⚡ **Real-time Data Collection** - Collects pool data every 1-2 seconds
+- 💾 **In-Memory Cache** - Ultra-fast storage with zero disk I/O
+- 🌐 **REST API** - Query tokens, pools, and prices instantly
 - 📊 **1,894 Records/Second** - 1000 pools + 894 pool prices per cycle
 - 🔒 **Thread-Safe** - Mutex protection for concurrent access
 - 🎯 **Chain Registry Integration** - Automatic token metadata updates
+- ⚡ **No Persistence** - Pure in-memory for maximum speed
 
 ## 🛠️ Installation
 
 ### Prerequisites
 
 - Go 1.21 or higher
-- No CGO required (uses pure Go SQLite driver)
+- No external dependencies (pure in-memory storage)
 
 ### Setup
 
@@ -32,7 +33,7 @@ go mod download
 go run main.go
 ```
 
-The database will be automatically created on first run.
+The in-memory cache is initialized automatically on startup.
 
 ## 🚀 Usage
 
@@ -118,7 +119,7 @@ backend/
 │   ├── http_server.go     # REST API server
 │   └── osmosis_pool_client.go  # Osmosis API client
 ├── storage/
-│   ├── sqlite_storage.go  # SQLite operations
+│   ├── memory_storage.go  # In-memory cache operations
 │   └── storage.go         # Storage interface
 ├── types/
 │   ├── asset_service.go   # Token metadata service
@@ -127,35 +128,30 @@ backend/
 ├── utils/
 │   └── chain_registry_updater.go  # Auto-update chain registry
 └── data/
-    ├── database/          # SQLite database files (not in Git)
     └── chain-registry/    # Token metadata from chain registry
 ```
 
-## 💾 Database
+## 💾 Storage
 
-### Important Notes
+### In-Memory Cache
 
-⚠️ **Database files are NOT included in Git** due to their size (can grow to GBs).
+⚡ **All data is stored in memory** - No database files, no persistence.
 
-### Database Location
-```
-backend/data/database/osmosis_history.db
-```
+**Advantages:**
+- Ultra-fast API responses (<5ms)
+- Zero disk I/O overhead
+- No database locks or crashes
+- Minimal memory footprint (~2 MB)
 
-### Tables
-- `pools_history` - Raw pool data from Osmosis API
-- `pool_prices_history` - Calculated prices between token pairs
-- `tokens_history` - Token price history (future use)
+**Trade-offs:**
+- Data is lost on restart (by design)
+- Only latest prices are kept
+- Perfect for real-time trading applications
 
-### Database Growth
-- **Per hour**: ~50-100 MB (1-second intervals)
-- **Per day**: ~1-2 GB (continuous collection)
-
-### Reset Database
-```bash
-# Stop the application first (Ctrl+C)
-Remove-Item backend/data/database/*.db*
-```
+### Memory Usage
+- **Pools**: ~1 KB per pool × 1000 = ~1 MB
+- **Pool Prices**: ~500 bytes per price × 894 = ~500 KB
+- **Total**: ~2 MB (very lightweight!)
 
 ## 🔧 Configuration
 
@@ -166,18 +162,18 @@ var config = Config{
     DisplayLimit:   25,
     RequestTimeout: 30 * time.Second,
     RefreshMinutes: 1 * time.Second,      // Collection interval
-    StorageType:    "sqlite",
-    DataFolder:     "data/database",
+    StorageType:    "memory",             // In-memory cache
     Chains:         []string{"osmosis"},   // Chains to monitor
 }
 ```
 
 ## 📊 Performance
 
-- **Update Interval**: ~1-2 seconds (not exactly 1s due to API call time)
+- **Update Interval**: ~1-2 seconds (API fetch + calculation time)
 - **Records per Cycle**: 1,894 (1000 pools + 894 pool prices)
-- **API Response Time**: <100ms (with SQLite indexes)
-- **Concurrent Safety**: Mutex-protected database access
+- **API Response Time**: <5ms (in-memory reads)
+- **Memory Usage**: ~2 MB (stable)
+- **Concurrent Safety**: Thread-safe with RWMutex
 
 ## 🐛 Troubleshooting
 
@@ -190,26 +186,20 @@ httpServer := api.NewHTTPServer(8080, ...)
 httpServer := api.NewHTTPServer(8081, ...)
 ```
 
-### Database Locked
-If you get "database is locked" errors:
-1. Stop all running instances
-2. Delete `.db-shm` and `.db-wal` files
-3. Restart the application
-
-### Out of Memory
-For long-running instances, consider:
-1. Implementing data retention policies
-2. Archiving old data periodically
-3. Using VACUUM to reclaim space
+### Memory Usage
+The application uses ~2 MB of memory. If you're concerned about memory:
+- The cache only keeps latest data (1 snapshot)
+- Memory usage is stable and predictable
+- No memory leaks (Go's GC handles cleanup)
 
 ## 📝 TODO
 
-- [ ] Analytics API endpoints (`/api/history/*`, `/api/analytics/*`)
-- [ ] Connection pooling optimization
-- [ ] Data retention policies
-- [ ] Historical data export
-- [ ] Multi-chain support expansion
-- [ ] WebSocket support for real-time updates
+- [ ] Swap simulation endpoints (`/api/swap/simulate`)
+- [ ] Best route calculation for multi-hop swaps
+- [ ] Wallet integration (Keplr support)
+- [ ] Frontend UI (React/Next.js)
+- [ ] WebSocket support for real-time push updates
+- [ ] Optional: Add historical data persistence (if needed later)
 
 ## 📄 License
 

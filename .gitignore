@@ -1,9 +1,3 @@
-# Database files - Μην ανεβάζεις το database
-backend/data/database/
-backend/data/database/*.db
-backend/data/database/*.db-shm
-backend/data/database/*.db-wal
-
 # Go build artifacts
 backend/*.exe
 backend/osmosis-tracker.exe

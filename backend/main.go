@@ -24,9 +24,9 @@ type Config struct {
 var config = Config{
 	DisplayLimit:   25,
 	RequestTimeout: 30 * time.Second,
-	RefreshMinutes: 1 * time.Second,     // ⚡ ΕΠΑΓΓΕΛΜΑΤΙΚΟ: Ανανέωση κάθε 1 δευτερόλεπτο
-	StorageType:    "sqlite",            // 💾 SQLite για historical data
-	DataFolder:     "data/database",     // Database folder
+	RefreshMinutes: 1 * time.Second,     // ⚡ REAL-TIME: Ανανέωση κάθε 1 δευτερόλεπτο
+	StorageType:    "memory",            // 💾 In-Memory Cache (No persistence)
+	DataFolder:     "data/database",     // Not used for memory storage
 	Chains:         []string{"osmosis"}, // Αλυσίδες που θα παρακολουθούμε
 }
 
@@ -44,15 +44,12 @@ func main() {
 		log.Fatalf("❌ Σφάλμα αρχικοποίησης AssetService: %v", err)
 	}
 
-	// Initialize SQLite storage (για το HTTP API να διαβάζει)
-	sqliteStorage, err := storage.NewSQLiteStorage(config.DataFolder)
-	if err != nil {
-		log.Fatalf("❌ Σφάλμα αρχικοποίησης SQLite storage: %v", err)
-	}
-	defer sqliteStorage.Close()
+	// Initialize In-Memory storage (για real-time data χωρίς persistence)
+	memoryStorage := storage.NewMemoryStorage()
+	log.Println("✅ In-Memory cache initialized")
 
-	// Initialize HTTP server με access στο database
-	httpServer := api.NewHTTPServer(8080, chainRegistryUpdater, sqliteStorage)
+	// Initialize HTTP server με access στο memory cache
+	httpServer := api.NewHTTPServer(8080, chainRegistryUpdater, memoryStorage)
 
 	// Start HTTP server σε ξεχωριστό goroutine
 	go func() {
@@ -64,27 +61,27 @@ func main() {
 	showWelcomeMessage()
 
 	if config.RefreshMinutes > 0 {
-		startAutoRefresh(assetService, httpServer, sqliteStorage)
+		startAutoRefresh(assetService, httpServer, memoryStorage)
 	} else {
-		runSingleExecution(assetService, httpServer, sqliteStorage)
+		runSingleExecution(assetService, httpServer, memoryStorage)
 	}
 }
 
 func showWelcomeMessage() {
 	fmt.Println("🚀 Professional Osmosis Data Collector")
-	fmt.Printf("💾 Storage: SQLite (Historical Data)\n")
+	fmt.Printf("💾 Storage: In-Memory Cache (Real-time)\n")
 	fmt.Printf("⛓️  Chains: %v\n", config.Chains)
 	fmt.Println("⚡ Update Interval: 1 SECOND (Real-time)")
 	fmt.Println("================================")
 }
 
-func runSingleExecution(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) {
+func runSingleExecution(assetService *types.AssetService, httpServer *api.HTTPServer, memoryStorage *storage.MemoryStorage) {
 	// Εκτέλεση για κάθε αλυσίδα
 	for _, chain := range config.Chains {
 		// fmt.Printf("\n🎯 ΕΠΕΞΕΡΓΑΣΙΑ ΑΛΥΣΙΔΑΣ: %s\n", strings.ToUpper(chain))
 		// fmt.Println("------------------------------")
 
-		_, err := fetchChainData(chain, assetService, httpServer, sqliteStorage)
+		_, err := fetchChainData(chain, assetService, httpServer, memoryStorage)
 		if err != nil {
 			log.Printf("❌ Σφάλμα για %s: %v", chain, err)
 			continue
@@ -92,16 +89,16 @@ func runSingleExecution(assetService *types.AssetService, httpServer *api.HTTPSe
 	}
 }
 
-func fetchChainData(chain string, assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) ([]types.TokenInfo, error) {
+func fetchChainData(chain string, assetService *types.AssetService, httpServer *api.HTTPServer, memoryStorage *storage.MemoryStorage) ([]types.TokenInfo, error) {
 	switch chain {
 	case "osmosis":
-		return fetchOsmosisData(assetService, httpServer, sqliteStorage)
+		return fetchOsmosisData(assetService, httpServer, memoryStorage)
 	default:
 		return nil, fmt.Errorf("μη υποστηριζόμενη αλυσίδα: %s", chain)
 	}
 }
 
-func fetchOsmosisData(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) ([]types.TokenInfo, error) {
+func fetchOsmosisData(assetService *types.AssetService, httpServer *api.HTTPServer, memoryStorage *storage.MemoryStorage) ([]types.TokenInfo, error) {
 	// Αρχικοποίηση του νέου Osmosis Pool Client
 	osmosisClient := api.NewOsmosisPoolClient()
 
@@ -118,14 +115,14 @@ func fetchOsmosisData(assetService *types.AssetService, httpServer *api.HTTPServ
 		poolPrices = []types.PoolPrice{}
 	}
 
-	// 3. ⚡ ΑΠΟΘΗΚΕΥΣΗ ΣΕ SQLITE (Historical Data)
+	// 3. ⚡ ΑΠΟΘΗΚΕΥΣΗ ΣΕ MEMORY CACHE (Real-time)
 	// Αποθήκευση ΟΛΩΝ των pools (raw data)
-	if err := sqliteStorage.SavePools(pools); err != nil {
+	if err := memoryStorage.SavePools(pools); err != nil {
 		log.Printf("❌ Failed to save pools: %v", err)
 	}
 
 	// Αποθήκευση pool prices (υπολογισμένες τιμές μεταξύ tokens)
-	if err := sqliteStorage.SavePoolPrices(poolPrices); err != nil {
+	if err := memoryStorage.SavePoolPrices(poolPrices); err != nil {
 		log.Printf("❌ Failed to save pool prices: %v", err)
 	}
 
@@ -136,16 +133,16 @@ func fetchOsmosisData(assetService *types.AssetService, httpServer *api.HTTPServ
 }
 
 // startAutoRefresh - Αρχή auto-refresh λειτουργίας
-func startAutoRefresh(assetService *types.AssetService, httpServer *api.HTTPServer, sqliteStorage *storage.SQLiteStorage) {
+func startAutoRefresh(assetService *types.AssetService, httpServer *api.HTTPServer, memoryStorage *storage.MemoryStorage) {
 	fmt.Printf("⚡ Real-Time Mode - Update κάθε %v\n", config.RefreshMinutes)
-	fmt.Printf("💾 Storage: SQLite (Historical)\n")
+	fmt.Printf("💾 Storage: In-Memory Cache (No persistence)\n")
 	fmt.Println("🌐 API: http://localhost:8080")
-	fmt.Println("📊 Database συλλέγει data κάθε δευτερόλεπτο...")
+	fmt.Println("📊 Cache ανανεώνεται κάθε δευτερόλεπτο...")
 	fmt.Println("   Πατήστε Ctrl+C για διακοπή")
 	fmt.Println()
 
 	// Τρέχει αμέσως την πρώτη φορά
-	runSingleExecution(assetService, httpServer, sqliteStorage)
+	runSingleExecution(assetService, httpServer, memoryStorage)
 
 	// Δημιουργία ticker για auto-refresh
 	ticker := time.NewTicker(config.RefreshMinutes)
@@ -155,11 +152,11 @@ func startAutoRefresh(assetService *types.AssetService, httpServer *api.HTTPServ
 
 	for range ticker.C {
 		executionCount++
-		runSingleExecution(assetService, httpServer, sqliteStorage)
+		runSingleExecution(assetService, httpServer, memoryStorage)
 
 		// Κάθε 60 δευτερόλεπτα δείχνε stats
 		if executionCount%60 == 0 {
-			fmt.Printf("\n📊 [%d snapshots collected] - %s\n",
+			fmt.Printf("\n📊 [%d cache updates] - %s\n",
 				executionCount, time.Now().Format("15:04:05"))
 		}
 	}
